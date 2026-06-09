@@ -30,7 +30,7 @@ jobs:
       - name: Build runtime .env
         run: |
           cat > .env <<EOF
-          APP_ENV=production
+          APP_ENV=local
           APP_DOMAIN=${{ vars.APP_DOMAIN }}
           API_DOMAIN=${{ vars.API_DOMAIN }}
 
@@ -47,7 +47,7 @@ jobs:
           LOG_LEVEL=info
 
           DB_CONNECTION=pgsql
-          DB_HOST=postgres
+          DB_HOST=proconnect_pgsql
           DB_PORT=5432
           DB_DATABASE=${{ vars.DB_DATABASE }}
           DB_USERNAME=${{ vars.DB_USERNAME }}
@@ -57,7 +57,7 @@ jobs:
           QUEUE_CONNECTION=redis
           SESSION_DRIVER=database
 
-          REDIS_HOST=redis
+          REDIS_HOST=proconnect_redis
           REDIS_PORT=6379
 
           JWT_SECRET=${{ secrets.JWT_SECRET }}
