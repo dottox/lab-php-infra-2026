@@ -30,8 +30,8 @@ $COMPOSE exec -T backend php artisan optimize:clear || true
 echo "==> Database setup"
 
 if [ "${DB_FRESH_SEED:-false}" = "true" ]; then
-  echo "WARNING: DB_FRESH_SEED=true -> running migrate:fresh --seed"
-  $COMPOSE exec -T backend php artisan migrate:fresh --seed --force
+  echo "WARNING: DB_FRESH_SEED=true -> running migrate:fresh"
+  $COMPOSE exec -T backend php artisan migrate:fresh
 else
   echo "Running safe migrations"
   $COMPOSE exec -T backend php artisan migrate --force
