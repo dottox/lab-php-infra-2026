@@ -18,41 +18,41 @@ until $COMPOSE exec -T postgres pg_isready -U "$DB_USERNAME" -d "$DB_DATABASE" >
   sleep 2
 done
 
-echo "==> Start application stack"
-$COMPOSE up -d
-
-echo "==> Wait backend boot"
-sleep 10
+echo "==> Run Laravel preparation using one-off containers"
 
 echo "==> Clear Laravel caches"
-$COMPOSE exec -T backend php artisan optimize:clear || true
+$COMPOSE run --rm backend php artisan optimize:clear || true
 
 echo "==> Database setup"
 
 if [ "${DB_FRESH_SEED:-false}" = "true" ]; then
-  echo "WARNING: DB_FRESH_SEED=true -> running migrate:fresh"
-  $COMPOSE exec -T backend php artisan migrate:fresh
+  echo "WARNING: DB_FRESH_SEED=true -> running migrate:fresh --force"
+  echo "WARNING: This will DROP all tables in database: $DB_DATABASE"
+  $COMPOSE run --rm backend php artisan migrate:fresh --force
 else
   echo "Running safe migrations"
-  $COMPOSE exec -T backend php artisan migrate --force
+  $COMPOSE run --rm backend php artisan migrate --force
 
   if [ "${DB_SEED:-false}" = "true" ]; then
     echo "DB_SEED=true -> running db:seed"
-    $COMPOSE exec -T backend php artisan db:seed --force
+    $COMPOSE run --rm backend php artisan db:seed --force
   fi
 fi
 
 echo "==> Storage link"
-$COMPOSE exec -T backend php artisan storage:link || true
+$COMPOSE run --rm backend php artisan storage:link || true
 
 echo "==> Cache Laravel"
-$COMPOSE exec -T backend php artisan config:cache
-$COMPOSE exec -T backend php artisan route:cache
-$COMPOSE exec -T backend php artisan view:cache
+$COMPOSE run --rm backend php artisan config:cache
+$COMPOSE run --rm backend php artisan route:cache
+$COMPOSE run --rm backend php artisan view:cache
+
+echo "==> Start application stack"
+$COMPOSE up -d
 
 if $COMPOSE config --services | grep -q '^horizon$'; then
   echo "==> Restart Horizon gracefully"
-  $COMPOSE exec -T backend php artisan horizon:terminate || true
+  $COMPOSE run --rm backend php artisan horizon:terminate || true
   $COMPOSE restart horizon || true
 fi
 
