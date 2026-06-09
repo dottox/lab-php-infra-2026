@@ -22,11 +22,28 @@ echo "==> Start postgres and redis first"
 $COMPOSE up -d postgres redis
 
 echo "==> Wait for PostgreSQL"
+
+MAX_RETRIES=45
+RETRY=0
+
 until $COMPOSE exec -T postgres pg_isready -U "$DB_USERNAME" -d "$DB_DATABASE" >/dev/null 2>&1; do
-  echo "Waiting for PostgreSQL..."
+  RETRY=$((RETRY + 1))
+
+  if [ "$RETRY" -ge "$MAX_RETRIES" ]; then
+    echo "ERROR: PostgreSQL did not become ready in time"
+
+    echo "==> Postgres status"
+    $COMPOSE ps postgres || true
+
+    echo "==> Postgres logs"
+    $COMPOSE logs --tail=120 postgres || true
+
+    exit 1
+  fi
+
+  echo "Waiting for PostgreSQL... ($RETRY/$MAX_RETRIES)"
   sleep 2
 done
-
 echo "==> Run Laravel preparation using one-off containers"
 
 echo "==> Clear Laravel caches"
