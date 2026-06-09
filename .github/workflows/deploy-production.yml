@@ -71,6 +71,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           source: ".env,docker-compose.yml,nginx/*,scripts/*"
           target: "/opt/proconnect"
           overwrite: true
@@ -86,6 +87,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           envs: GHCR_USERNAME,GHCR_READ_TOKEN
           script: |
             set -euo pipefail
