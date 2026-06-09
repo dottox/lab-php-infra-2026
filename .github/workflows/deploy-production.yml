@@ -26,42 +26,78 @@ jobs:
     steps:
       - name: Checkout infra repo
         uses: actions/checkout@v4
-
+  
       - name: Build runtime .env
         run: |
           cat > .env <<EOF
-          APP_ENV=local
+          APP_ENV=production
           APP_DOMAIN=${{ vars.APP_DOMAIN }}
           API_DOMAIN=${{ vars.API_DOMAIN }}
-
+      
           BACKEND_IMAGE=${{ vars.BACKEND_IMAGE }}
           FRONTEND_IMAGE=${{ vars.FRONTEND_IMAGE }}
-
+      
           APP_NAME=ProConnect
           APP_URL=https://${{ vars.API_DOMAIN }}
           FRONTEND_URL=https://${{ vars.APP_DOMAIN }}
-
+      
           APP_KEY=${{ secrets.APP_KEY }}
           APP_DEBUG=false
           LOG_CHANNEL=stack
           LOG_LEVEL=info
-
+      
           DB_CONNECTION=pgsql
-          DB_HOST=proconnect_pgsql
+          DB_HOST=postgres
           DB_PORT=5432
           DB_DATABASE=${{ vars.DB_DATABASE }}
           DB_USERNAME=${{ vars.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
+      
           CACHE_STORE=redis
           QUEUE_CONNECTION=redis
           SESSION_DRIVER=database
-
-          REDIS_HOST=proconnect_redis
+      
+          REDIS_CLIENT=phpredis
+          REDIS_HOST=redis
+          REDIS_PASSWORD=null
           REDIS_PORT=6379
-
+      
+          BROADCAST_CONNECTION=log
+          FILESYSTEM_DISK=local
+      
+          HORIZON_PATH=horizon
+      
+          MAIL_MAILER=${{ vars.MAIL_MAILER }}
+          MAIL_HOST=${{ vars.MAIL_HOST }}
+          MAIL_PORT=${{ vars.MAIL_PORT }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM_ADDRESS=${{ vars.MAIL_FROM_ADDRESS }}
+          MAIL_FROM_NAME=ProConnect
+      
           JWT_SECRET=${{ secrets.JWT_SECRET }}
-          MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }}
+          MAPBOX_PUBLIC_TOKEN=${{ secrets.MAPBOX_PUBLIC_TOKEN }}
+      
+          REVIEW_EDIT_WINDOW_DAYS=7
+          PAYMENTS_CURRENCY=UYU
+          PAYMENT_INTENT_EXPIRATION_MINUTES=30
+      
+          VIDEO_PROVIDER=simulator
+          VIDEO_JOIN_BEFORE_MINUTES=1000000
+          VIDEO_JOIN_AFTER_MINUTES=120
+          VIDEO_SIMULATOR_BASE_URL=https://${{ vars.APP_DOMAIN }}/video
+      
+          LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+      
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION=${{ vars.AWS_DEFAULT_REGION }}
+          AWS_BUCKET=${{ vars.AWS_BUCKET }}
+          AWS_USE_PATH_STYLE_ENDPOINT=false
+      
+          SEED_DEMO_DATA=false
           EOF
 
       - name: Upload infra files
