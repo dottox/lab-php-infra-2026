@@ -1,0 +1,76 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [deploy-production]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout infra
+        uses: actions/checkout@v4
+
+      - name: Prepare .env
+        run: |
+          cat > .env <<EOF
+          APP_ENV=production
+          APP_DOMAIN=${{ vars.APP_DOMAIN }}
+          API_DOMAIN=${{ vars.API_DOMAIN }}
+          BACKEND_IMAGE=${{ vars.BACKEND_IMAGE }}
+          FRONTEND_IMAGE=${{ vars.FRONTEND_IMAGE }}
+          APP_NAME=ProConnect
+          APP_URL=https://${{ vars.API_DOMAIN }}
+          FRONTEND_URL=https://${{ vars.APP_DOMAIN }}
+          APP_KEY=${{ secrets.APP_KEY }}
+          APP_DEBUG=false
+          LOG_CHANNEL=stack
+          LOG_LEVEL=info
+          DB_CONNECTION=pgsql
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_DATABASE=${{ vars.DB_DATABASE }}
+          DB_USERNAME=${{ vars.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          CACHE_STORE=redis
+          QUEUE_CONNECTION=redis
+          SESSION_DRIVER=database
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }}
+          EOF
+
+      - name: Copy infra files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yml,nginx,scripts,.env"
+          target: "/opt/proconnect"
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN
+          script: |
+            cd /opt/proconnect
+            chmod +x scripts/deploy.sh
+            ./scripts/deploy.sh
