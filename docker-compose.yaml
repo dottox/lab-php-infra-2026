@@ -1,0 +1,68 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: proconnect_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE}:latest
+    container_name: proconnect_frontend
+    env_file:
+      - .env
+    expose:
+      - "4000"
+    restart: unless-stopped
+
+  backend:
+    image: ${BACKEND_IMAGE}:latest
+    container_name: proconnect_backend
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  horizon:
+    image: ${BACKEND_IMAGE}:latest
+    container_name: proconnect_horizon
+    env_file:
+      - .env
+    command: php artisan horizon
+    depends_on:
+      - backend
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: proconnect_postgres
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: proconnect_redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
