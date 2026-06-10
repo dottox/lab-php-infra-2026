@@ -43,17 +43,38 @@ jobs:
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          envs: GHCR_USERNAME,GHCR_READ_TOKEN
+          envs: GHCR_USERNAME,GHCR_READ_TOKEN,LIVEKIT_API_KEY,LIVEKIT_API_SECRET
           script: |
             set -eu
 
             mkdir -p /opt/proconnect
+            mkdir -p /opt/proconnect/docker/livekit
+
+            cat > /opt/proconnect/docker/livekit/livekit.yaml <<EOF
+            port: 7880
+
+            bind_addresses:
+              - ""
+
+            rtc:
+              tcp_port: 7881
+              port_range_start: 60000
+              port_range_end: 60100
+              use_external_ip: true
+
+            keys:
+              ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}
+            EOF
+
+            chmod 600 /opt/proconnect/docker/livekit/livekit.yaml
 
             cat > /opt/proconnect/.env <<EOF
             APP_ENV=production
@@ -102,21 +123,21 @@ jobs:
             MAIL_FROM_NAME=ProConnect
 
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            MAPBOX_PUBLIC_TOKEN=${{ secrets.MAPBOX_PUBLIC_TOKEN }}
+            MAPBOX_PUBLIC_TOKEN=${{ vars.MAPBOX_PUBLIC_TOKEN }}
 
-            REVIEW_EDIT_WINDOW_DAYS=7
-            PAYMENTS_CURRENCY=UYU
-            PAYMENT_INTENT_EXPIRATION_MINUTES=30
+            REVIEW_EDIT_WINDOW_DAYS=${{ vars.REVIEW_EDIT_WINDOW_DAYS }}
+            PAYMENTS_CURRENCY=${{ vars.PAYMENTS_CURRENCY }}
+            PAYMENT_INTENT_EXPIRATION_MINUTES=${{ vars.PAYMENT_INTENT_EXPIRATION_MINUTES }}
 
-            VIDEO_PROVIDER=simulator
-            VIDEO_JOIN_BEFORE_MINUTES=1000000
-            VIDEO_JOIN_AFTER_MINUTES=120
-            VIDEO_SIMULATOR_BASE_URL=https://${{ vars.APP_DOMAIN }}/video
+            VIDEO_PROVIDER=${{ vars.VIDEO_PROVIDER }}
+            VIDEO_JOIN_BEFORE_MINUTES=${{ vars.VIDEO_JOIN_BEFORE_MINUTES }}
+            VIDEO_JOIN_AFTER_MINUTES=${{ vars.VIDEO_JOIN_AFTER_MINUTES }}
+            VIDEO_SIMULATOR_BASE_URL=${{ vars.VIDEO_SIMULATOR_BASE_URL }}
 
-            LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
+            LIVEKIT_URL=${{ vars.LIVEKIT_URL }}
             LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
             LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
-            LIVEKIT_TOKEN_TTL_SECONDS=${{ secrets.LIVEKIT_TOKEN_TTL_SECONDS }}
+            LIVEKIT_TOKEN_TTL_SECONDS=${{ vars.LIVEKIT_TOKEN_TTL_SECONDS }}
 
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -132,6 +153,7 @@ jobs:
             ls -la
             test -f docker-compose.yml
             test -f .env
+            test -f docker/livekit/livekit.yaml
 
             chmod +x scripts/deploy.sh
 
