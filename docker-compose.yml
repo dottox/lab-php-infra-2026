@@ -92,6 +92,20 @@ services:
     networks:
       - proconnect_internal
     restart: unless-stopped
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: proconnect_livekit
+    command: --config /etc/livekit/livekit.yaml
+    volumes:
+      - ./docker/livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro
+    expose:
+      - "7880"
+    ports:
+      - "7881:7881/tcp"
+      - "60000-60100:60000-60100/udp"
+    networks:
+      - proconnect_internal
+    restart: unless-stopped
 
 volumes:
   postgres_data:
