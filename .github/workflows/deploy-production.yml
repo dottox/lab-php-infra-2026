@@ -77,20 +77,31 @@ jobs:
             chmod 600 /opt/proconnect/docker/livekit/livekit.yaml
 
             cat > /opt/proconnect/.env <<EOF
+            APP_NAME=ProConnect
             APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=false
+            APP_URL=https://${{ vars.API_DOMAIN }}
+            FRONTEND_URL=https://${{ vars.APP_DOMAIN }}
+
             APP_DOMAIN=${{ vars.APP_DOMAIN }}
             API_DOMAIN=${{ vars.API_DOMAIN }}
 
             BACKEND_IMAGE=${{ vars.BACKEND_IMAGE }}
             FRONTEND_IMAGE=${{ vars.FRONTEND_IMAGE }}
 
-            APP_NAME=ProConnect
-            APP_URL=https://${{ vars.API_DOMAIN }}
-            FRONTEND_URL=https://${{ vars.APP_DOMAIN }}
+            APP_LOCALE=en
+            APP_FALLBACK_LOCALE=en
+            APP_FAKER_LOCALE=en_US
 
-            APP_KEY=${{ secrets.APP_KEY }}
-            APP_DEBUG=false
+            APP_MAINTENANCE_DRIVER=file
+            APP_MAINTENANCE_STORE=database
+
+            BCRYPT_ROUNDS=12
+
             LOG_CHANNEL=stack
+            LOG_STACK=single
+            LOG_DEPRECATIONS_CHANNEL=null
             LOG_LEVEL=info
 
             DB_CONNECTION=pgsql
@@ -100,29 +111,46 @@ jobs:
             DB_USERNAME=${{ vars.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
-            CACHE_STORE=redis
-            QUEUE_CONNECTION=redis
             SESSION_DRIVER=database
+            SESSION_LIFETIME=120
+            SESSION_ENCRYPT=false
+            SESSION_PATH=/
+            SESSION_DOMAIN=null
+
+            BROADCAST_CONNECTION=log
+            FILESYSTEM_DISK=local
+            QUEUE_CONNECTION=redis
+
+            CACHE_STORE=redis
+            CACHE_PREFIX=
 
             REDIS_CLIENT=phpredis
             REDIS_HOST=redis
             REDIS_PASSWORD=null
             REDIS_PORT=6379
 
-            BROADCAST_CONNECTION=log
-            FILESYSTEM_DISK=local
+            MONGODB_USERNAME=${{ vars.MONGODB_USERNAME }}
+            MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
+            MONGODB_DATABASE=${{ vars.MONGODB_DATABASE }}
+            MONGODB_PORT=27017
+            MONGODB_URI=mongodb://${{ vars.MONGODB_USERNAME }}:${{ secrets.MONGODB_PASSWORD }}@mongodb:27017/${{ vars.MONGODB_DATABASE }}?authSource=admin
+            MONGODB_SERVER_SELECTION_TIMEOUT_MS=500
+            MONGODB_CONNECT_TIMEOUT_MS=500
 
             HORIZON_PATH=horizon
 
             MAIL_MAILER=${{ vars.MAIL_MAILER }}
+            MAIL_SCHEME=null
             MAIL_HOST=${{ vars.MAIL_HOST }}
             MAIL_PORT=${{ vars.MAIL_PORT }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             MAIL_FROM_ADDRESS=${{ vars.MAIL_FROM_ADDRESS }}
             MAIL_FROM_NAME=ProConnect
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
 
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+
             MAPBOX_PUBLIC_TOKEN=${{ vars.MAPBOX_PUBLIC_TOKEN }}
 
             REVIEW_EDIT_WINDOW_DAYS=${{ vars.REVIEW_EDIT_WINDOW_DAYS }}
@@ -144,6 +172,18 @@ jobs:
             AWS_DEFAULT_REGION=${{ vars.AWS_DEFAULT_REGION }}
             AWS_BUCKET=${{ vars.AWS_BUCKET }}
             AWS_USE_PATH_STYLE_ENDPOINT=false
+
+            GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=https://${{ vars.API_DOMAIN }}/api/v1/auth/oauth/google/callback
+
+            GITHUB_CLIENT_ID=${{ vars.GITHUB_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
+            GITHUB_REDIRECT_URI=https://${{ vars.API_DOMAIN }}/api/v1/auth/oauth/github/callback
+
+            MICROSOFT_CLIENT_ID=${{ vars.MICROSOFT_CLIENT_ID }}
+            MICROSOFT_CLIENT_SECRET=${{ secrets.MICROSOFT_CLIENT_SECRET }}
+            MICROSOFT_REDIRECT_URI=https://${{ vars.API_DOMAIN }}/api/v1/auth/oauth/microsoft/callback
 
             SEED_DEMO_DATA=false
             EOF
